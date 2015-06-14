@@ -1,2 +1,2 @@
 # rdfp
-RDF Partitioner
+RDF stream processing framework
