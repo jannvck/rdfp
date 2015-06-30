@@ -9,12 +9,14 @@ import java.io.BufferedReader
 import java.io.FileReader
 import org.openrdf.model.{ Statement => SesameStatement, BNode, URI, Value, Resource }
 import java.io.File
-import scala.actors.OutputChannel
 import scala.collection.mutable.{ Set, ListBuffer }
-import scala.actors.Actor
+import akka.actor.ActorSystem
+import akka.actor.Actor
+import akka.actor.ActorRef
+import akka.actor.ActorSelection
 
 class RDFStreamProcessingTest extends FlatSpec {
-  val Dataset = "data/pool/dnb/dnb-Josef_Spieler-Psychologe.rdf"
+  val Dataset = "dnb-Josef_Spieler-Psychologe.rdf"
   val JosefSpielerURI = "http://d-nb.info/gnd/117483885"
 
   val jenaMatcher = new SetMatcher(
@@ -31,11 +33,11 @@ class RDFStreamProcessingTest extends FlatSpec {
       assert(jenaMatcher.set.size == 16)
     }
   it should "return 16 triples for a test dataset and matcher if run multi-threaded" in {
-    val consumers = Set[Actor]()
+    val consumers = Set[ActorRef]()
     val consumedStatements = Set[Statement[Triple]]()
     val processor = new JenaRDFStreamProcessor(
       Dataset,
-      (t: Triple) => consumers.foreach((c: Actor) => c ! Statement(t)), // send matched triple to all consumers
+      (t: Triple) => consumers.foreach((c: ActorRef) => c ! Statement(t)), // send matched triple to all consumers
       List(jenaMatcher))
     val producer = processor.producer
     consumers += processor.consumer((t: Statement[Triple]) => consumedStatements += t)
@@ -45,11 +47,11 @@ class RDFStreamProcessingTest extends FlatSpec {
   }
   it should "return 16 triples for a test dataset and matcher, collecting a total of 18 triples" +
     "in a single consumer, because of two unique triples in each thread if run multi-threaded" in {
-      val consumers = Set[Actor]()
+      val consumers = Set[ActorRef]()
       val consumedStatements = Set[Statement[Triple]]()
       val processor = new JenaRDFStreamProcessor(
         Dataset,
-        (t: Triple) => consumers.foreach((c: Actor) => c ! Statement(t)), // send matched triple to all consumers
+        (t: Triple) => consumers.foreach((c: ActorRef) => c ! Statement(t)), // send matched triple to all consumers
         List(jenaMatcher))
       val producer0 = processor.producer
       val producer1 = processor.producer
@@ -61,11 +63,11 @@ class RDFStreamProcessingTest extends FlatSpec {
     }
   it should "return 16 triples for a test dataset and matcher for each parser thread, " +
     "resulting in a total of 32 triples sent to a single consumer" in {
-      val consumers = Set[Actor]()
+      val consumers = Set[ActorRef]()
       val consumedStatements = ListBuffer[Statement[Triple]]()
       val processor = new JenaRDFStreamProcessor(
         Dataset,
-        (t: Triple) => consumers.foreach((c: Actor) => c ! Statement(t)), // send matched triple to all consumers
+        (t: Triple) => consumers.foreach((c: ActorRef) => c ! Statement(t)), // send matched triple to all consumers
         List(jenaMatcher))
       val producer0 = processor.producer
       val producer1 = processor.producer
@@ -90,11 +92,11 @@ class RDFStreamProcessingTest extends FlatSpec {
       assert(sesameMatcher.set.size == 16)
     }
   it should "return 16 statements for this particular dataset and matcher if run multi-threaded" in {
-    val consumers = Set[Actor]()
+    val consumers = Set[ActorRef]()
     val consumedStatements = Set[Statement[SesameStatement]]()
     val processor = SesameRDFStreamProcessor(
       () => FileUtils.openResourceFile(Dataset),
-      (s: SesameStatement) => consumers.foreach((c: Actor) => c ! Statement(s)), // send matched triple to all consumers
+      (s: SesameStatement) => consumers.foreach((c: ActorRef) => c ! Statement(s)), // send matched triple to all consumers
       List(sesameMatcher))
     val producer = processor.producer
     consumers += processor.consumer((s: Statement[SesameStatement]) => consumedStatements += s)
@@ -104,11 +106,11 @@ class RDFStreamProcessingTest extends FlatSpec {
   }
   it should "return 16 statements for a test dataset and matcher, collecting a total of 18 statements" +
     "in a single consumer, because of two unique triples in each thread if run multi-threaded" in {
-      val consumers = Set[Actor]()
+      val consumers = Set[ActorRef]()
       val consumedStatements = Set[Statement[SesameStatement]]()
       val processor = SesameRDFStreamProcessor(
         () => FileUtils.openResourceFile(Dataset),
-        (s: SesameStatement) => consumers.foreach((c: Actor) => c ! Statement(s)), // send matched triple to all consumers
+        (s: SesameStatement) => consumers.foreach((c: ActorRef) => c ! Statement(s)), // send matched triple to all consumers
         List(sesameMatcher))
       val producer0 = processor.producer
       val producer1 = processor.producer
@@ -120,11 +122,11 @@ class RDFStreamProcessingTest extends FlatSpec {
     }
   it should "return 16 triples for a test dataset and matcher for each parser thread, " +
     "resulting in a total of 32 triples sent to a single consumer" in {
-      val consumers = Set[Actor]()
+      val consumers = Set[ActorRef]()
       val consumedStatements = ListBuffer[Statement[SesameStatement]]()
       val processor = SesameRDFStreamProcessor(
         () => FileUtils.openResourceFile(Dataset),
-        (s: SesameStatement) => consumers.foreach((c: Actor) => c ! Statement(s)), // send matched triple to all consumers
+        (s: SesameStatement) => consumers.foreach((c: ActorRef) => c ! Statement(s)), // send matched triple to all consumers
         List(sesameMatcher))
       val producer0 = processor.producer
       val producer1 = processor.producer

@@ -79,9 +79,9 @@ object ComponentChangeHandler {
 }
 object BNodeHandler {
   abstract class LevelChangeEvent
-  case class LevelUp extends LevelChangeEvent
+  case class LevelUp() extends LevelChangeEvent
   case class LevelsDown(levels: Int) extends LevelChangeEvent
-  case class Clear extends LevelChangeEvent
+  case class Clear() extends LevelChangeEvent
   trait LevelChangeListener {
     def onLevelChange(e: LevelChangeEvent): Unit
   }
@@ -160,10 +160,10 @@ protected trait NewRootSubjectListener[Component, Subject <: Component, Predicat
 //  def forSearchIn[Component, Statement](index: Directory) = new IndexSearcher[Component,Statement](index)
 //}
 trait LuceneIndexer[Component, Statement] {
-  protected val indexAnalyzer = new StandardAnalyzer(Version.LUCENE_CURRENT)
+  protected val indexAnalyzer = new StandardAnalyzer()
   protected val indexDirectory: Directory
   protected val indexSimilarity = new DefaultSimilarity()
-  protected val indexWriterConfig = () => new IndexWriterConfig(Version.LUCENE_CURRENT, indexAnalyzer).
+  protected val indexWriterConfig = () => new IndexWriterConfig(indexAnalyzer).
     setOpenMode(IndexWriterConfig.OpenMode.CREATE_OR_APPEND).
     setSimilarity(indexSimilarity)
   protected val indexWriter = new IndexWriter(indexDirectory, indexWriterConfig())
@@ -222,13 +222,13 @@ object LuceneSearcher {
   def apply(index: Directory) = new StandaloneLuceneSearcher(index)
 }
 trait LuceneSearcher {
-  protected val indexAnalyzer = new StandardAnalyzer(Version.LUCENE_CURRENT)
+  protected val indexAnalyzer = new StandardAnalyzer()
   protected val indexDirectory: Directory
   lazy protected val ireader = DirectoryReader.open(indexDirectory)
   lazy protected val isearcher = new IndexSearcher(ireader)
   protected val indexSimilarity = new DefaultSimilarity()
   def searchByParsedQuery(field: String, query: String, results: Int) =
-    search(new QueryParser(Version.LUCENE_CURRENT, field, indexAnalyzer).parse(query), results)
+    search(new QueryParser(field, indexAnalyzer).parse(query), results)
   def search(query: Query, results: Int): List[Map[String, Set[String]]] = {
     Console.println("ireader.numDocs()=" + ireader.numDocs())
     isearcher.setSimilarity(indexSimilarity)

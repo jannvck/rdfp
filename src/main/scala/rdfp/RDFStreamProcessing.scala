@@ -9,9 +9,11 @@ import org.apache.jena.atlas.lib.Sink
 import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.riot.system.StreamRDFBase
 import com.hp.hpl.jena.graph.Triple
-import scala.actors.OutputChannel
-import scala.actors._
-import scala.actors.Actor._
+import akka.actor.ActorSystem
+import akka.actor.Actor
+import akka.actor.ActorRef
+import akka.actor.Props
+import akka.actor.ActorSelection
 import scala.collection.mutable.{ ListBuffer, Set, Map, HashMap, Stack }
 import org.openrdf.model.Model
 import org.openrdf.model.Value
@@ -32,6 +34,7 @@ trait RDFStreamProcessor[S] {
   val source: Any
   val sink: S => Unit
   val matchers: List[Matcher[S]]
+  val system = ActorSystem("rdfpActorSystem")
   protected[rdfp] def handle(statement: S) =
     for (matcher <- matchers)
       if (matcher matches statement) {
@@ -42,27 +45,31 @@ trait RDFStreamProcessor[S] {
         }
       }
   def trigger
-  def producer(): Actor = actor {
-    loop {
-      receive {
-        case Start => trigger
-        case Stop => exit
-        case _ => throw new RuntimeException("unknown message from " + sender)
-      }
+  object Producer {
+    def props(): Props = Props(new Producer())
+  }
+  class Producer extends Actor {
+    def receive = {
+      case Start => trigger
+      case Stop => context.stop(self)
+      case _ => throw new RuntimeException("unknown message from " + sender)
     }
   }
-  def consumer(handle: Statement[S] => Unit): Actor = actor {
-    loop {
-      receive {
-        case Stop => exit
-        case s: Statement[S] => handle(s)
-        case _ => throw new RuntimeException("unknown message from " + sender)
-      }
+  object Consumer {
+    def props(handle: Statement[S] => Unit): Props = Props(new Consumer(handle))
+  }
+  class Consumer(handle: Statement[S] => Unit) extends Actor {
+    def receive = {
+      case Stop => context.stop(self)
+      case s: Statement[S] => handle(s)
+      case _ => throw new RuntimeException("unknown message from " + sender)
     }
   }
+  def producer(): ActorRef = system.actorOf(Producer.props(), "producer"+math.random)
+  def consumer(handle: Statement[S] => Unit): ActorRef = system.actorOf(Consumer.props(handle), "consumer"+math.random)
 }
-case class Start
-case class Stop
+case class Start()
+case class Stop()
 case class Statement[S](statement: S)
 object SesameRDFStreamProcessor {
   implicit val bNStack = Stack[SesameStatement]()
@@ -104,7 +111,7 @@ object SesameRDFStreamProcessor {
     src: () => Reader,
     snk: SesameStatement => Unit,
     mtchrs: List[Matcher[SesameStatement]])(implicit bNStack: Stack[SesameStatement], bNMapping: (SesameStatement, BNodeHandler[Value, Resource, Value, SesameStatement]) => Set[SesameStatement], idxMapping: (SesameStatement) => Map[String, String], idxDirectory: Directory)
-    extends { override val indexDirectory = idxDirectory; override val indexAnalyzer = new StandardAnalyzer(Version.LUCENE_CURRENT); override val indexSimilarity = new DefaultSimilarity() } with SesameRDFStreamProcessor(src, snk, mtchrs) with LuceneIndexer[Value, SesameStatement] with NewRootSubjectListener[Value, Resource, URI, Value, SesameStatement] with LuceneSearcher {
+    extends { override val indexDirectory = idxDirectory; override val indexAnalyzer = new StandardAnalyzer(); override val indexSimilarity = new DefaultSimilarity() } with SesameRDFStreamProcessor(src, snk, mtchrs) with LuceneIndexer[Value, SesameStatement] with NewRootSubjectListener[Value, Resource, URI, Value, SesameStatement] with LuceneSearcher {
     this.componentChangeListeners += this
     this.levelChangeListeners += this
     override def onNewRootSubject(s: Resource) = newDocument(s.toString())
