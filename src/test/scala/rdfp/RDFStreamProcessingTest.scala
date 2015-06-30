@@ -16,7 +16,7 @@ import akka.actor.ActorRef
 import akka.actor.ActorSelection
 
 class RDFStreamProcessingTest extends FlatSpec {
-  val Dataset = "dnb-Josef_Spieler-Psychologe.rdf"
+  val Dataset = "data/dnb-Josef_Spieler-Psychologe.rdf"
   val JosefSpielerURI = "http://d-nb.info/gnd/117483885"
 
   val jenaMatcher = new SetMatcher(
