@@ -85,9 +85,9 @@ pattern has been applied.
 val consumers = Set[ActorRef]()
 val consumedStatements = ListBuffer[Statement[SesameStatement]]()
 val processor = SesameRDFStreamProcessor(
-() => FileUtils.openResourceFile(Dataset),
-(s: SesameStatement) => consumers.foreach((c: ActorRef) => c ! Statement(s)), // send matched triple to all consumers
-List(sesameMatcher))
+	() => FileUtils.openResourceFile(Dataset),
+	(s: SesameStatement) => consumers.foreach((c: ActorRef) => c ! Statement(s)), // send matched triple to all consumers
+	List(sesameMatcher))
 val producer0 = processor.producer
 val producer1 = processor.producer
 consumers += processor.consumer((s: Statement[SesameStatement]) => consumedStatements += s) // do something with the statement
@@ -95,6 +95,27 @@ producer0 ! Start
 producer1 ! Start
 ```
 
-For further assistence some utility classes are available to handle blank nodes,
-watch for changes on components of statments in regard to the last processed triple
-and for building and searching Apache Lucene indexes.
+## Persistence
+
+Special classes exist to store matched elements in a SQL database by using the
+H2 database. They are useful when dealing with RDF streams. These classes can be
+used for general storage and are by modular design not dependent on the rest of
+the rdfp code. Implemenatations are available for string keys and values.
+ - PersistentMap, Map[K, V] simple key-value SQL storage of arbitrary serializable objects. 
+ - PersistentMapSet, Map[K, Set[V]] forms a mapping between an arbitrary serializable
+ key object and a corresponding set containing arbitrary serializable objects
+ - PersistentNestedMapSet, Map[K1, Map[K2, Set[V]]] mapping
+```scala
+// find all people
+lazy val smwPersons = new PersistentSetMatcher[SesameStatement, Value](
+	"jdbc:h2:" + path + "/tmp/rdfp.smw.persons",
+	(s: SesameStatement) => RDFType.equals(s.getPredicate().toString()) && SMWPerson.equals(s.getObject().toString()), // match condition
+	(s: SesameStatement) => Some(s.getSubject()), // element to store in this Matcher's list
+	(s: SesameStatement) => None) // triple to store, the place for transformations
+```
+
+ ## Change Listeners
+ 
+The source file RDFStreamProcessingHelper contains some utility classes. To
+watch for changes on components of statments as triples pass along, use the
+ComponentChangeHandler object.
