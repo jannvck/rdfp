@@ -6,10 +6,17 @@ RDFStreamProcessingTest.scala contains several test cases which may serve as
 examples on how to use.
 The framework has been used successfully to process datasets containing more than
 100 billion triples on datasets of the german national library.
+It can process RDF streams in parallel since the Akka actors model has been applied.
+
+## Installation
+Clone the repository and run sbt in the project root folder.
+Enter 'test' to run the tests or 'compile' to compile the project.
+
+## Getting Started
 
 The basic building blocks of a RDF stream processor in rdfp are matchers, sources
 and sinks. While sources are mandatory, sinks are optional.
-To process RDF triples you have to define matchers, which define which triples
+To process RDF triples you have to define matchers, that define which triples
 will be processed. A matcher consists of a match condition, definition of what
 to store and how to transform it:
 
@@ -21,8 +28,8 @@ trait Matcher[S] {
 }
 ```
 
-The following examples match upon a certain URI, store the object of a matched
-triple and apply no transformation.
+The following examples match upon a certain URI on the subject, store the object
+of a matched triple and apply no transformation.
 
 With Jena:
 ```scala
@@ -68,3 +75,26 @@ SesameRDFStreamProcessor(
         (s: SesameStatement) => None,
         List(sesameMatcher)).trigger
 ```
+
+## Parallelism
+
+You can easily create multiple processors to run in parallel as the following
+example illustrates with a Sesame RDF stream processor. The producer-consumer
+pattern has been applied.
+```scala
+val consumers = Set[ActorRef]()
+val consumedStatements = ListBuffer[Statement[SesameStatement]]()
+val processor = SesameRDFStreamProcessor(
+() => FileUtils.openResourceFile(Dataset),
+(s: SesameStatement) => consumers.foreach((c: ActorRef) => c ! Statement(s)), // send matched triple to all consumers
+List(sesameMatcher))
+val producer0 = processor.producer
+val producer1 = processor.producer
+consumers += processor.consumer((s: Statement[SesameStatement]) => consumedStatements += s) // do something with the statement
+producer0 ! Start
+producer1 ! Start
+```
+
+For further assistence some utility classes are available to handle blank nodes,
+watch for changes on components of statments in regard to the last processed triple
+and for building and searching Apache Lucene indexes.
