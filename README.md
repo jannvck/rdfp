@@ -1,7 +1,7 @@
 # rdfp
 RDF stream processing framework written in Scala.
 
-Works with Sesame and Jena. Supports on-the-fly lucene indexing.
+Works with Sesame and Jena and has a small footprint. Supports on-the-fly lucene indexing.
 RDFStreamProcessingTest.scala contains several test cases which may serve as
 examples on how to use.
 The framework has been used successfully to process datasets containing more than
@@ -9,9 +9,10 @@ The framework has been used successfully to process datasets containing more tha
 It can process RDF streams in parallel since the Akka actors model has been applied.
 
 ## Installation
-Clone the repository and run sbt in the project root folder.
+Clone the repository and run [sbt](http://www.scala-sbt.org/) in the project root folder.
 Enter 'test' to run the tests, 'compile' to compile the project or 'doc' to
-generate API documentation with scaladoc.
+generate API documentation with scaladoc. Use the tests to verify all is running
+correctly. 
 
 ## Getting Started
 
@@ -158,7 +159,7 @@ Will yield two triples:
 <SomeSubject> <somePredicate> <someObject>
 <SomeSubject> <someOtherPredicate> <someObject>
 ```
-Where SomeSubject is the root_node.
+Where SomeSubject is the *root node*.
 
 
 ## Lucene indexing
@@ -168,7 +169,7 @@ and ```DefaultSimilarity```. It uses a ```ComponentChangeHandler``` and has a
 special method ```onNewRootSubject``` which is called whenever the subject in
 the RDF stream changes. Subgraphs containing blank nodes are automatically handled
 (by *flattening* the subgraph - see previous section)
-The code snipped below processes an RDF stream and creates an index with Lucene
+The code snippet below processes an RDF stream and creates an index with Lucene
 on-the-fly. By default, a new subject will be mapped to a document in the Lucene
 index. This can be changed by overriding the ```onNewRootSubject``` method.
 
@@ -187,4 +188,4 @@ To search an index, standard Lucence queries can be used as in the example below
 ```scala
 val dnbIndex = LuceneSearcher(FSDirectory.open(new File("data/lucene.idx")))
 dnbIndex.searchByParsedQuery(fac.createURI(gndo + "preferredNameForThePerson").toString(), "some label", 10)
-```scala
+```
