@@ -104,9 +104,10 @@ producer1 ! Start
 ## Persistence
 
 Special classes exist to store matched elements in a SQL database by using the
-H2 database. They are useful when dealing with RDF streams. These classes can be
-used for general storage and are by modular design not dependent on the rest of
-the rdfp code. Implemenatations are available for string keys and values.
+[H2](http://www.h2database.com/html/main.html) database. These classes are useful
+when dealing with RDF streams. They classes can be used for general storage and
+are, by modular design, not dependent on the rest of the rdfp code.
+Implemenatations are available for string keys and values.
  - ```PersistentMap```, Map[K, V] simple key-value SQL storage of arbitrary serializable objects. 
  - ```PersistentMapSet```, Map[K, Set[V]] forms a mapping between an arbitrary serializable
  key object and a corresponding set containing arbitrary serializable objects
@@ -123,13 +124,18 @@ lazy val smwPersons = new PersistentSetMatcher[SesameStatement, Value](
 
 ## Change Listeners
  
-The source file RDFStreamProcessingHelper contains some utility classes. To
-watch for changes on components of statments as triples pass along, use the
-```ComponentChangeHandler``` object.
+To watch for changes on components of statments as triples pass along, the
+```SesameRDFStreamProcessor``` implements the ```ComponentChangeHandler``` trait.
 
 ```scala
-ComponentChangeHandler
+trait ComponentChangeListener[Component, Subject <: Component, Predicate <: Component, Object <: Component] {
+	def onComponentChange(e: ComponentChangeEvent[Component, Subject, Predicate, Object]): Unit
+}
 ```
+
+The received event ```ComponentChangeEvent``` is implemented by the case classes
+```SubjectChange```, ```PredicateChange``` and ```ObjectChange``` which carry the
+previous element and the new one.
 
 
 ## Dealing with blank nodes
@@ -189,3 +195,8 @@ To search an index, standard Lucence queries can be used as in the example below
 val dnbIndex = LuceneSearcher(FSDirectory.open(new File("data/lucene.idx")))
 dnbIndex.searchByParsedQuery(fac.createURI(gndo + "preferredNameForThePerson").toString(), "some label", 10)
 ```
+
+## License
+
+This software is distributed under the terms of the Eclipse Public License 1.0,
+see http://www.eclipse.org/legal/epl-v10.html.
