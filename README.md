@@ -2,7 +2,7 @@
 RDF stream processing framework written in Scala.
 
 Works with Sesame and Jena and has a small footprint. Supports on-the-fly lucene indexing.
-RDFStreamProcessingTest.scala contains several test cases which may serve as
+```RDFStreamProcessingTest.scala``` contains several test cases which may serve as
 examples on how to use.
 The framework has been used successfully to process datasets containing more than
 100 billion triples on datasets of the german national library.
@@ -105,7 +105,7 @@ producer1 ! Start
 
 Special classes exist to store matched elements in a SQL database by using the
 [H2](http://www.h2database.com/html/main.html) database. These classes are useful
-when dealing with RDF streams. They classes can be used for general storage and
+when dealing with RDF streams. They can be used for general storage and
 are, by modular design, not dependent on the rest of the rdfp code.
 Implemenatations are available for string keys and values.
  - ```PersistentMap```, Map[K, V] simple key-value SQL storage of arbitrary serializable objects. 
@@ -125,7 +125,7 @@ lazy val smwPersons = new PersistentSetMatcher[SesameStatement, Value](
 ## Change Listeners
  
 To watch for changes on components of statments as triples pass along, the
-```SesameRDFStreamProcessor``` implements the ```ComponentChangeHandler``` trait.
+```SesameRDFStreamProcessor``` extends the ```ComponentChangeHandler``` trait.
 
 ```scala
 trait ComponentChangeListener[Component, Subject <: Component, Predicate <: Component, Object <: Component] {
@@ -138,10 +138,10 @@ The received event ```ComponentChangeEvent``` is implemented by the case classes
 previous element and the new one.
 
 
-## Dealing with blank nodes
+## Blank nodes
 
-The ```SesameRDFStreamProcessor``` implements the ```BNodeHandler``` trait which
-enables to keep track of blank nodes. For example it allows to keep track of the
+The ```SesameRDFStreamProcessor``` extends the ```BNodeHandler``` trait which
+allows to keep track of blank nodes. For example it allows to keep track of the
 root node of the blank node subgraph. Arbitrary transformations of the subgraphs
 are possible.
 The following example will *flatten* a subgraph containing blank nodes:
@@ -157,15 +157,15 @@ implicit val bNMapping = (s: SesameStatement, h: BNodeHandler[Value, Resource, V
 
 This blank node mapping will have the following effect:
 ```
-<SomeSubject> <somePredicate> <b_node0>
+<someSubject> <somePredicate> <b_node0>
 <b_node0> <someOtherPredicate> <someObject>
 ```
 Will yield two triples:
 ```
-<SomeSubject> <somePredicate> <someObject>
-<SomeSubject> <someOtherPredicate> <someObject>
+<someSubject> <somePredicate> <someObject>
+<someSubject> <someOtherPredicate> <someObject>
 ```
-Where SomeSubject is the *root node*.
+Where *someSubject* is the *root node*.
 
 
 ## Lucene indexing
