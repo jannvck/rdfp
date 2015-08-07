@@ -4,8 +4,9 @@ RDF stream processing framework written in Scala.
 Works with Sesame and Jena and has a small footprint. Supports on-the-fly lucene indexing.
 ```RDFStreamProcessingTest.scala``` contains several test cases which may serve as
 examples on how to use.
-The framework has been used successfully to process datasets containing more than
-100 billion triples on datasets of the german national library.
+The framework is designed to process very large datasets and has been used
+successfully to process datasets of the german national library containing more
+than 100 billion triples.
 It can process RDF streams in parallel since the Akka actors model has been applied.
 
 ## Installation
