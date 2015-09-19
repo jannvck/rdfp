@@ -1,9 +1,9 @@
 # rdfp
 RDF stream processing framework written in Scala.
 
-Works with Sesame and Jena and has a small footprint. Supports on-the-fly lucene indexing.
-```RDFStreamProcessingTest.scala``` contains several test cases which may serve as
-examples on how to use.
+Works with Sesame and Jena and has a small footprint. Supports on-the-fly Lucene
+indexing. ```RDFStreamProcessingTest.scala``` contains several test cases which
+may serve as examples on how to use.
 The framework is designed to process very large datasets and has been used
 successfully to process datasets of the german national library containing more
 than 100 billion triples.

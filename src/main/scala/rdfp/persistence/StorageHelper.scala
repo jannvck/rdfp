@@ -8,8 +8,6 @@ import java.util.zip.GZIPOutputStream
 import scala.collection.mutable.{ Set, Map }
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.output.ByteArrayOutputStream
-import org.openrdf.model.BNode
-import org.openrdf.model.{ Statement => SesameStatement }
 import rdfp.persistence.ormlite.mapset.PersistentStringMapSet
 import rdfp.persistence.ormlite.mapset.PersistentSerializingMapSet
 
