@@ -1,6 +1,8 @@
 name := "rdfp"
  
 version := "1.0"
+
+organization := "com.github.jannvck"
  
 scalaVersion := "2.11.7"
 
@@ -39,3 +41,38 @@ libraryDependencies += "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
 libraryDependencies += "com.typesafe.akka" %% "akka-actor" % "2.3.11"
 
 scalacOptions in (Compile,doc) := Seq("-groups", "-implicits")
+
+publishMavenStyle := true
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+}
+
+publishArtifact in Test := false
+
+pomIncludeRepository := { _ => false }
+
+pomExtra := (
+  <url>https://github.com/jannvck/rdfp</url>
+  <licenses>
+    <license>
+      <name>EPL</name>
+      <url>http://www.eclipse.org/legal/epl-v10.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <scm>
+    <url>git@github.com:jannvck/rdfp.git</url>
+    <connection>scm:git:git@github.com:jannvck/rdfp.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>jannvck</id>
+      <name>Jan Novacek</name>
+      <url>https://github.com/jannvck</url>
+    </developer>
+  </developers>)

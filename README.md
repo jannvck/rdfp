@@ -10,7 +10,24 @@ than 100 billion triples.
 It can process RDF streams in parallel since the Akka actors model has been applied.
 
 ## Installation
-Clone the repository and run [sbt](http://www.scala-sbt.org/) in the project root folder.
+
+Use Maven:
+
+```
+<dependency>
+    <groupId>com.github.jannvck</groupId>
+    <artifactId>rdfp_2.11</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
+Or with SBT add to your ```build.sbt``` file:
+
+```
+libraryDependencies += "com.github.jannvck" % "rdfp_2.11" % "1.0"
+```
+
+Or clone the repository and run [sbt](http://www.scala-sbt.org/) in the project root folder.
 Enter 'test' to run the tests, 'compile' to compile the project or 'doc' to
 generate API documentation with scaladoc. Use the tests to verify all is running
 correctly. 
